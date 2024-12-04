@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.css" />
+  <script>
+    let kaart, abikiht, kohad = {}, uudiseTekst = "";
+
+    // Eeldefineeritud kohad
+    function lugemine1() {
+      kohad["Pärnu"] = [58.383, 24.496];
+      kohad["Tartu"] = [58.378, 26.725];
+      // Lisa veel kohad vastavalt vajadusele
+      console.log("Kohad:", kohad);
+    }
+
+    function algus() {
+      kaart = L.map('kaardikiht').setView([59.439, 24.773], 8);
+      L.tileLayer('https://tiles.maaamet.ee/tm/tms/1.0.0/hybriid@GMC/{z}/{x}/{y}.png&ASUTUS=TLU&ERIALA=DIGIHUMANITAARIA', {
+        attribution: "Map: <a href='http://www.maaamet.ee/'>Maa-amet</a>",
+        tms: true
+      }).addTo(kaart);
+
+      abikiht = L.layerGroup().addTo(kaart);
+    }
+
+    function laadiJaKuvaKohad(tekst) {
+      let sonad = tekst.replace(/[,\.]/g, "").split(" ");
+      abikiht.clearLayers();
+
+      for (let sona of sonad) {
+        let trimmedSona = sona.trim();
+        if (kohad[trimmedSona]) {
+          L.marker(kohad[trimmedSona]).addTo(abikiht);
+          kaart.setView(kohad[trimmedSona], 12);
+        }
+      }
+    }
+
+    function loe(aadress) {
+      fetch(aadress)
+        .then(response => response.text())
+        .then(tekst => {
+          uudiseTekst = tekst;
+          document.getElementById('vastus1').innerText = tekst;
+          laadiJaKuvaKohad(tekst);
+        })
+        .catch(error => console.error("Uudis ei laetud:", error));
+    }
+
+    function loeUudis(aadress) {
+      loe(aadress);
+    }
+
+    window.onload = function() {
+      lugemine1();
+      algus();
+    };
+  </script>
+</head>
+<body>
+  <div id="kaardikiht" style="width: 800px; height: 400px"></div>
+  <input type="button" value="uudis" onclick="loe('uudis.txt')" />
+  <input type="button" value="uudis2" onclick="loe('uudis2.txt')" />
+  <div id="vastus1">Vastuse koht</div>
+</body>
+</html>
